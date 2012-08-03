@@ -66,7 +66,9 @@ ARGV.each do |a|
   end
 end
 
-id = true unless id or title
+# defualt naming files by id to true
+# unless they choose to name files by titles
+id = true unless title
 
 # validate all ranges
 fail "Range exceeds ID of latest comic." if range.last > newest
