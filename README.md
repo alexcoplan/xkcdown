@@ -2,6 +2,14 @@
 
 A downloader for [xkcd](http://xkcd.com).
 
+## Quickstart (download all comics)
+
+```
+git clone git://github.com/alexcoplan/xkcdown.git
+cd xkcdown
+ruby xkcdown.rb
+```
+
 ## Usage
 
 ```
