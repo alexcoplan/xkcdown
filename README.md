@@ -4,7 +4,7 @@ A downloader for [xkcd](http://xkcd.com).
 
 ## Quickstart (download all comics)
 
-```
+```sh
 git clone git://github.com/alexcoplan/xkcdown.git
 cd xkcdown
 bundle
