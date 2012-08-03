@@ -10,13 +10,22 @@ def get(url)
   Net::HTTP.get_response(uri).body
 end
 
-def colour(text, code)
-  "\e[#{code}m#{text}\e[0m" 
+class String
+  def colour(code)
+     "\e[#{code}m#{self}\e[0m"
+  end
+
+  colours = {
+    red: 31
+  }
+
+  colours.each do |name, code|
+    define_method name { colour(code) }
+  end
 end
 
 def fail(oh_dear)
-  red = 31
-  abort colour("Error: #{oh_dear}\n", red)
+  abort "Error: #{oh_dear}\n".red
 end
 
 puts "
@@ -61,7 +70,7 @@ fail "Range exceeds ID of latest comic." if range.last > newest
 fail "Range must start at 1 or more." if range.first < 1
 
 if File.exists? dir
-  abort "File #{a} exists, and is not a directory!" unless File.directory? dir
+  abort "File #{a} exists, but is not a directory." unless File.directory? dir
 else
   Dir.mkdir(dir)
 end
