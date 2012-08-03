@@ -2,26 +2,13 @@ require 'nokogiri'
 require 'pathname'
 require 'net/http'
 require 'uri'
+require_relative 'core_ext'
 
 # Some helpers
 
 def get(url)
   uri = URI.parse(url)
   Net::HTTP.get_response(uri).body
-end
-
-class String
-  def colour(code)
-     "\e[#{code}m#{self}\e[0m"
-  end
-
-  colours = {
-    red: 31
-  }
-
-  colours.each do |name, code|
-    define_method name { colour(code) }
-  end
 end
 
 def fail(oh_dear)
@@ -47,16 +34,30 @@ puts "#{newest}.
 # defaults
 dir = "images"
 range = 1..newest # all comics
+id = false
+title = false
 
 # parse arguments
 # integer arguments assume from x to latest comic
 # arguments in form x-y are taken as a range
+# arguments in form -t, -it are taken as options
 # anything else is a dir name to store comics in
 
 ARGV.each do |a|
-  if a =~ /\A[0-9]+\Z/
+  case a
+  when /\A-([a-z]+)\Z/i # -options
+    opts = $1
+    opts.each_char do |c|
+      case c
+      when 'i'
+        id = true
+      when 't'
+        title = true
+      end
+    end
+  when /\A[0-9]+\Z/ # single comic
     range = a.to_i..a.to_i
-  elsif a =~ /\A[0-9]+-[0-9]+\Z/
+  when /\A[0-9]+-[0-9]+\Z/ # range of comics
     parts = a.split('-').map(&:to_i)
     fail "Bad range #{a}." if parts[0] >= parts[1]
     range = Range.new(*parts)
@@ -64,6 +65,8 @@ ARGV.each do |a|
     dir = a
   end
 end
+
+id = true unless id or title
 
 # validate all ranges
 fail "Range exceeds ID of latest comic." if range.last > newest
@@ -99,7 +102,19 @@ range.each do |n|
   uri = URI.parse(img_url)
   Net::HTTP.start(uri.host) do |http|
     resp = http.get(uri.path)
-    filename = uri.path.split('/').last
+    remote_fn = uri.path.split('/').last
+    parts = remote_fn.split('.')
+    ext = parts.last
+    fn_noext = parts.clip.join
+
+    filename = ""
+    if id
+      filename << "#{n}"
+      filename << " " if title
+    end
+    filename << "#{fn_noext}" if title
+    filename << ".#{ext}"
+
     open(dir_path + filename, "wb") do |file|
       file.write(resp.body)
     end
